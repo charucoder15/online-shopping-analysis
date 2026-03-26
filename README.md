@@ -1,4 +1,4 @@
-online-shopping-analysis
+Online-Shopping-Analysis
 Online Shopping Behavior Analysis using Python (EDA, Correlation &amp; Chi-square Test
 
 This project analyzes online shopping behavior using Python.
