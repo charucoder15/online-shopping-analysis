@@ -1,0 +1,115 @@
+# ------------------------
+# Online Shopping Behavior Study
+# ------------------------
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import pearsonr, chi2_contingency
+
+# 1. Load dataset
+# Change this path to wherever you saved your Kaggle dataset CSV
+downloads = "Customer_Shopping_Dataset.csv"  # <– update
+df = pd.read_csv(Customer_Shopping_Dataset.csv)
+
+print("Initial rows:")
+print(df.head())
+print("\nColumns in dataset:", df.columns.tolist())
+
+# 2. Inspect gender and product category columns
+# Assume dataset has columns named "Gender" and "Product_Category"
+print("\nValue counts for Gender:")
+print(df['Gender'].value_counts(dropna=False))
+
+print("\nValue counts for Product_Category:")
+print(df['Product_Category'].value_counts(dropna=False))
+
+# 3. Simulate “Customer Rating” and “Purchase Frequency” if not present
+# Check if already present
+if 'Customer_Rating' not in df.columns:
+    np.random.seed(42)
+    df['Customer_Rating'] = np.random.randint(1, 6, size=len(df))  # 1 to 5
+    print("\nSimulated Customer_Rating column added.")
+
+if 'Purchase_Frequency' not in df.columns:
+    # Use a Poisson or similar distribution to simulate weekly/monthly purchase counts
+    df['Purchase_Frequency'] = np.random.poisson(lam=3, size=len(df))  # mean ~3 purchases
+    print("Simulated Purchase_Frequency column added.")
+
+# 4. Correlation test: Customer Rating vs Purchase Frequency
+ratings = df['Customer_Rating']
+freq = df['Purchase_Frequency']
+
+corr_coef, p_value = pearsonr(ratings, freq)
+print(f"\nPearson correlation coefficient between Rating and Frequency: {corr_coef:.3f}")
+print(f"P-value: {p_value:.3f}")
+
+# Visualize scatter
+plt.figure(figsize=(8,5))
+sns.scatterplot(x=ratings, y=freq, alpha=0.6)
+plt.xlabel("Customer Rating (1-5)")
+plt.ylabel("Purchase Frequency")
+plt.title("Scatter: Rating vs Purchase Frequency")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# 5. Chi-Square Independence Test: Gender vs Product Category
+contingency_table = pd.crosstab(df['Gender'], df['Product_Category'])
+print("\nContingency Table (Gender x Product_Category):")
+print(contingency_table)
+
+chi2, p, dof, expected = chi2_contingency(contingency_table)
+print(f"\nChi-Square statistic: {chi2:.3f}")
+print(f"Degrees of freedom: {dof}")
+print(f"P-value: {p:.3f}")
+
+# Print expected frequencies for clarity
+print("\nExpected frequencies under independence assumption:")
+print(pd.DataFrame(expected, index=contingency_table.index, columns=contingency_table.columns))
+
+# Visualize with heatmap
+plt.figure(figsize=(10,7))
+sns.heatmap(contingency_table, annot=True, fmt="d", cmap="Blues")
+plt.title("Heatmap: Gender vs Product Category Counts")
+plt.ylabel("Gender")
+plt.xlabel("Product Category")
+plt.tight_layout()
+plt.show()
+
+# 6. Additional attractive visualisations
+# Purchase frequency distribution by gender
+plt.figure(figsize=(7,5))
+sns.boxplot(x='Gender', y='Purchase_Frequency', data=df)
+plt.title("Purchase Frequency distribution by Gender")
+plt.tight_layout()
+plt.show()
+
+# Rating distribution by product category
+plt.figure(figsize=(10,6))
+sns.violinplot(x='Product_Category', y='Customer_Rating', data=df, inner="quartile")
+plt.xticks(rotation=45)
+plt.title("Rating distribution by Product Category")
+plt.tight_layout()
+plt.show()
+
+# 7. Summary of findings
+print("\n--- Summary of Findings ---")
+print(f"Correlation between rating and purchase frequency is {corr_coef:.3f} (p={p_value:.3f}).")
+if p_value < 0.05:
+    print("This suggests the relationship is statistically significant.")
+else:
+    print("This suggests the relationship is NOT statistically significant.")
+
+print(f"For Gender vs Product Category, chi-square p-value = {p:.3f}.")
+if p < 0.05:
+    print("Gender and product category seem to be statistically dependent (not independent).")
+else:
+    print("Gender and product category seem to be statistically independent.")
+
+print("\nEnd of analysis.")
+
+# (Optional) 8. Save processed data and results
+df.to_csv("processed_shopping_behavior.csv", index=False)
+print("\nProcessed data saved to processed_shopping_behavior.csv")
